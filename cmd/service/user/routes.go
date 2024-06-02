@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/HarshitPG/ecommerce_api_go/cmd/config"
 	"github.com/HarshitPG/ecommerce_api_go/cmd/service/auth"
 	"github.com/HarshitPG/ecommerce_api_go/cmd/types"
 	"github.com/HarshitPG/ecommerce_api_go/cmd/utils"
@@ -44,9 +45,16 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request){
 
 	if !auth.Comparepasswords(u.Password,[]byte(user.Password)){
 		utils.WriteError(w,http.StatusBadRequest,fmt.Errorf("not found invalid email or password"))
+		return
 	}
 
-
+	secret:= []byte(config.Envs.JWTSecret)
+	token,err := auth.CreateJWT(secret, u.ID)
+	if err !=nil{
+		utils.WriteError(w, http.StatusInternalServerError,err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK,map[string]string{"token":token})
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request){
