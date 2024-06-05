@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/HarshitPG/ecommerce_api_go/cmd/service/cart"
+	"github.com/HarshitPG/ecommerce_api_go/cmd/service/order"
+	"github.com/HarshitPG/ecommerce_api_go/cmd/service/product"
 	"github.com/HarshitPG/ecommerce_api_go/cmd/service/user"
 	"github.com/gorilla/mux"
 )
@@ -30,7 +33,14 @@ func(s *APIServer) Run() error{
 	userHandler.RegisterRoutes(subrouter)
 
 
+	productStore:=product.NewStore(s.db)
+	productHandler := product.NewHandler(productStore)
+	productHandler.RegisterRoutes(subrouter)
 
+	orderStore := order.NewStore(s.db)
+
+	cartHandler := cart.NewHandler(orderStore,productStore,userStore)
+	cartHandler.RegisterRoutes(subrouter)
 	log.Println("Listening on", s.addr)
 
 	return http.ListenAndServe(s.addr,router)
